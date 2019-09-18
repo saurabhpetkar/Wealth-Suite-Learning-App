@@ -4,22 +4,21 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:http/http.dart';
-
-
+import '../models/video.dart';
+import '../models/course.dart';
 
 import '../models/home.dart';
 import '../models/user.dart';
-
 
 class ConnectedModel extends Model {
   bool _isloading = false;
   User _authenticatedUser;
   PublishSubject<HomePageMode> _usermode = PublishSubject();
-
+  Video selected_video;
+  Course selected_course;
 }
 
 class UserModel extends ConnectedModel {
-
   PublishSubject<HomePageMode> get usermode {
     return _usermode;
   }
@@ -27,7 +26,6 @@ class UserModel extends ConnectedModel {
   User get authenticatedUser {
     return _authenticatedUser;
   }
-
 
   Timer _authtimer;
   PublishSubject<bool> _userSubject = PublishSubject();
@@ -40,12 +38,10 @@ class UserModel extends ConnectedModel {
     return _authenticatedUser;
   }
 
-
-
-  Future<Map<String, dynamic>> authenticate(String email, String password) async {
+  Future<Map<String, dynamic>> authenticate(
+      String email, String password) async {
     _isloading = true;
     notifyListeners();
-
 
     final Map<String, dynamic> authdata_login = {
       'email': email,
@@ -63,12 +59,12 @@ class UserModel extends ConnectedModel {
     setAuthTimeout(1 * 3600 * 24); //1day timeout in seconds
     final DateTime now = DateTime.now();
     final DateTime expiryTime =
-    now.add(Duration(seconds: 1 * 3600 * 24)); //1 day in seconds
+        now.add(Duration(seconds: 1 * 3600 * 24)); //1 day in seconds
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('refresh', refresh);
     prefs.setString('username', name);
-    prefs.setString('access',access);
+    prefs.setString('access', access);
     //prefs.setString('refresh', responsedata['refresh']);
 //      prefs.setString('username', responsedata['username']);
 //      prefs.setString('access', responsedata['access']);
@@ -114,8 +110,6 @@ class UserModel extends ConnectedModel {
 //      return {'success': false, 'error': 'some error'};
 //    }
 
-
-
     //only frontend purpose
     haserror = false;
     message = 'Logged in';
@@ -124,11 +118,14 @@ class UserModel extends ConnectedModel {
 
     _isloading = false;
     notifyListeners();
-    _authenticatedUser = User(username: 'user', refresh: 'refresh', access: 'access', email: email);
+    _authenticatedUser = User(
+        username: 'user', refresh: 'refresh', access: 'access', email: email);
     return {'success': !haserror, 'message': message};
   }
 
   void autoAuthenticate() async {
+    _isloading = true;
+    notifyListeners();
     print('in autoauthenticate');
     _usermode.add(HomePageMode.not_authenticated);
 
@@ -136,16 +133,17 @@ class UserModel extends ConnectedModel {
     final String access = prefs.getString('access');
 
     if (access != null) {
-
       final String expiryTime = prefs.getString('expiryTime');
-      print('autoAuthenticate');
+      print('access not null');
       final DateTime now = DateTime.now();
       final parsedExpiryTime = DateTime.parse(expiryTime);
       if (parsedExpiryTime.isBefore(now)) {
-        _authenticatedUser = null;
+        print('access expired');
+        _isloading= false;
         notifyListeners();
-        return;
+        _usermode.add(HomePageMode.not_authenticated);
       }
+      print('access not expired');
 
       _authenticatedUser = User(
         access: prefs.getString('access'),
@@ -154,10 +152,17 @@ class UserModel extends ConnectedModel {
       );
       final int tokenlifespan = parsedExpiryTime.difference(now).inSeconds;
       setAuthTimeout(tokenlifespan);
-      _usermode.add(HomePageMode.authenticated);
-      //_userSubject.add(true);
+
+      _isloading= false;
       notifyListeners();
+      print('he is authenticated');
+      _usermode.add(HomePageMode.authenticated);
     }
+    print('access null');
+
+    _isloading= false;
+    print('hi there $_isloading');
+    notifyListeners();
     print('out of autoauthenticate');
 
     //logged out hai
@@ -183,8 +188,38 @@ class UserModel extends ConnectedModel {
   }
 }
 
-class UtilityModel extends ConnectedModel{
+class UtilityModel extends ConnectedModel {
   bool get isLoading {
+    print(_isloading);
     return _isloading;
+
+  }
+}
+
+class VideoModel extends ConnectedModel {
+  Video get SelectedVideo {
+    selected_video = Video(
+        description:
+            "When I first brought my cat home from the humane society she was a mangy, pitiful animal. There's a leash law for cats in Fort Collins. If they're not in your yard they have to be on a leash. Anyway, my cat is my best friend. I'm glad I got her. She sleeps under the covers with me when it's cold. Sometimes she meows a lot in the middle of the night and wakes me up, though.",
+        url:
+            'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        name: 'Sample',
+        course: 'Some Course',
+        number: '1');
+    return selected_video;
+  }
+  void SelectVideo(Video video){
+    selected_video = video;
+  }
+}
+
+
+class CourseModel extends ConnectedModel{
+  Course get SelectedCourse{
+    selected_course = Course(name: 'some course name');
+  }
+
+  void SelectCourse(Course course){
+    selected_course = course;
   }
 }

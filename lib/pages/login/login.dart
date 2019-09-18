@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:scoped_model/scoped_model.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../scoped_models/main.dart';
 
 class LoginPage extends StatefulWidget {
+  final MainModel model;
+
+  LoginPage(this.model);
+
   @override
   _LoginPageState createState() => new _LoginPageState();
 }
@@ -11,26 +17,36 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
 
+  Future _launchURL(String url) async {
+    await launch(url, forceSafariVC: true, forceWebView: true);
+    if (await canLaunch(url)) {
+      launch(
+        url,
+        forceWebView: false,
+      );
+    } else {
+      print('cant launch ${url}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-      Map<String, dynamic> user = {
-    'email': 'email',
-    'password': 'blah',
-  };
+    Map<String, dynamic> user = {
+      'email': 'email',
+      'password': 'blah',
+    };
     double border_top = MediaQuery.of(context).size.height > 680 ? 30 : 15;
     double border_side = MediaQuery.of(context).size.height > 680 ? 15 : 30;
-    print(MediaQuery.of(context).size.height);
 
-        void authform(Function authenticate) async {
-
-        if (!_formkey.currentState.validate()) {
-          return;
-        }
-        _formkey.currentState.save();
+    void authform(Function authenticate) async {
+      if (!_formkey.currentState.validate()) {
+        return;
+      }
+      _formkey.currentState.save();
 
       final Map<String, dynamic> successInformation = await authenticate(
-          user['email'],
-          user['password'],
+        user['email'],
+        user['password'],
       );
 
       if (!successInformation['success']) {
@@ -119,112 +135,102 @@ class _LoginPageState extends State<LoginPage> {
       builder: (BuildContext context, Widget child, MainModel model) {
         return Padding(
           padding: EdgeInsets.only(top: 10.0),
-          child: GestureDetector(child: Container(
-            alignment: Alignment.center,
-            height: 60,
-            decoration: new BoxDecoration(
-                color: Color(0xFF18D191),
-                borderRadius: new BorderRadius.circular(9.0)),
-            child: Text(
-              model.isLoading
-                  ? Center(
-                child: CircularProgressIndicator(
-                  backgroundColor: Colors.white,
-                ),
-              )
-                  : "Login",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18),
-
-            ),
-          ),
-          onTap: (){
-            authform(model.authenticate);
-          }
-        ),
+          child: GestureDetector(
+              child: Container(
+                alignment: Alignment.center,
+                height: 60,
+                decoration: new BoxDecoration(
+                    color: Color(0xFF18D191),
+                    borderRadius: new BorderRadius.circular(9.0)),
+                child: model.isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(),
+                      )
+                    : Text(
+                        "Login",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18),
+                      ),
+              ),
+              onTap: () {
+                authform(model.authenticate);
+              }),
         );
       },
     );
 
     return new Scaffold(
-//      appBar: new AppBar(
-//        backgroundColor: Colors.transparent,
-//        elevation: 0.0,
-//        iconTheme: new IconThemeData(
-//          color: Color(0xFF18D191),
-//        ),
-//      ),
-      body: Padding(
-        padding: EdgeInsets.only(
-            top: border_top, left: border_side, right: border_side),
-        child: Form(
-          key: _formkey,
-          child: ListView(
-            children: <Widget>[
-              Container(
-                padding: EdgeInsets.only(top: 30.0),
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  height: 130.0,
-                  fit: BoxFit.fitHeight,
-                ),
-              ),
-              new Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0, bottom: 80.0),
-                    child: new Text(
-                      "WealthSuite",
-                      style: new TextStyle(fontSize: 30.0),
+
+      body: ScopedModelDescendant<MainModel>(
+        builder: (BuildContext context, Widget child, MainModel model) {
+          return model.isLoading
+              ? Center(
+                  child: Text(''),
+                )
+              : Padding(
+                  padding: EdgeInsets.only(
+                      top: border_top, left: border_side, right: border_side),
+                  child: Form(
+                    key: _formkey,
+                    child: ListView(
+                      children: <Widget>[
+                        Container(
+                          padding: EdgeInsets.only(top: 30.0),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            height: 130.0,
+                            fit: BoxFit.fitHeight,
+                          ),
+                        ),
+                        new Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(top: 8.0, bottom: 80.0),
+                              child: new Text(
+                                "WealthSuite",
+                                style: new TextStyle(fontSize: 30.0),
+                              ),
+                            )
+                          ],
+                        ),
+                        new SizedBox(
+                          height: 15.0,
+                        ),
+                        emailField,
+                        new SizedBox(
+                          height: 15.0,
+                        ),
+                        passwordField,
+                        loginButton,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            GestureDetector(
+                              onTap: () {
+                                _launchURL('https://www.google.com/');
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: 18.0, top: 18.0),
+                                child: new Text("Register ",
+                                    style: new TextStyle(
+                                        fontSize: 17.0,
+                                        color: Color(0xFF18D191),
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  )
-                ],
-              ),
-
-              new SizedBox(
-                height: 15.0,
-              ),
-              emailField,
-              new SizedBox(
-                height: 15.0,
-              ),
-              passwordField,
-
-
-              loginButton,
-
-              Container(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.only(left: 10.0, right: 20.0, top: 10.0),
-                  child: new Container(
-                      alignment: Alignment.center,
-                      height: 60.0,
-                      child: new Text("Forgot Password?",
-                          style: new TextStyle(
-                              fontSize: 17.0, color: Color(0xFF18D191)))),
-                ),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 18.0),
-                    child: new Text("Create A New Account ",
-                        style: new TextStyle(
-                            fontSize: 17.0,
-                            color: Color(0xFF18D191),
-                            fontWeight: FontWeight.bold)),
                   ),
-                ],
-              ),
-            ],
-          ),
-        ),
+                );
+        },
       ),
     );
   }

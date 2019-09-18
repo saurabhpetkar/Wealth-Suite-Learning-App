@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:scoped_model/scoped_model.dart';
 
-
 import './scoped_models/main.dart';
 
 import './pages/home/home.dart';
 import './pages/login/login.dart';
 
 import './models/home.dart';
-
-
+import './pages/video/video.dart';
+import './pages/course/course.dart';
+import './pages/about/about.dart';
+import './pages/share/share.dart';
 
 void main() => runApp(MyApp());
 
@@ -20,33 +21,22 @@ class MyApp extends StatefulWidget {
   }
 }
 
-
 class _MyAppState extends State<MyApp> {
   final MainModel _model = MainModel();
   bool _isAuthenticated = false;
-  bool _otpsent = false;
-  bool _registration = false;
   HomePageMode _userMode = HomePageMode.not_authenticated;
-
-
 
   @override
   initState() {
     super.initState();
+    print("in initstate");
     _model.autoAuthenticate();
-    _model.usermode.listen((HomePageMode usermode){
+    _model.usermode.listen((HomePageMode usermode) {
       setState(() {
         _userMode = usermode;
       });
     });
-
-    //necessary
-
-    //dont erase
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -55,13 +45,28 @@ class _MyAppState extends State<MyApp> {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primarySwatch: Colors.blue,
           accentColor: Colors.black,
         ),
-        home: _userMode == HomePageMode.authenticated? HomePage(_model): LoginPage(),
+        home: _userMode == HomePageMode.authenticated
+            ? HomePage(_model)
+            : LoginPage(_model),
         routes: {
-          // '/bookings': (BuildContext context) => BookingPage(_model),
-
+          '/video': (BuildContext context) =>
+              _userMode == HomePageMode.not_authenticated
+                  ? LoginPage(_model)
+                  : VideoPage(_model),
+          '/course': (BuildContext context) =>
+              _userMode == HomePageMode.not_authenticated
+                  ? LoginPage(_model)
+                  : CoursePage(_model),
+          '/about': (BuildContext context) =>
+              _userMode == HomePageMode.not_authenticated
+                  ? LoginPage(_model)
+                  : AboutPage(_model),
+          '/share': (BuildContext context) =>
+              _userMode == HomePageMode.not_authenticated
+                  ? LoginPage(_model)
+                  : SharePage(_model),
         },
         onGenerateRoute: (RouteSettings settings) {
 //          final List<String> pathElements = settings.name.split('/');
@@ -85,10 +90,10 @@ class _MyAppState extends State<MyApp> {
 //          return null;
         },
         onUnknownRoute: (RouteSettings settings) {
-//          return MaterialPageRoute(
-//            builder: (BuildContext context) =>
-//            !_isAuthenticated ? LoginPage(_model) : HomePage(_model),
-//          );
+          return MaterialPageRoute(
+            builder: (BuildContext context) =>
+                !_isAuthenticated ? HomePage(_model) : LoginPage(_model),
+          );
         },
       ),
     );

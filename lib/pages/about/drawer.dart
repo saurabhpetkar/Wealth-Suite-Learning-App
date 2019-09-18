@@ -19,8 +19,25 @@ Widget drawer(BuildContext context, Function logout) {
           ),
 
           ListTile(
-            title: Text('Logout', style: TextStyle(fontSize: 16, color: Colors.blueGrey),),
+            title: Text('About', style: TextStyle(fontSize: 16, color: Colors.blueGrey),),
             selected: true,
+            leading: Icon(Icons.list),
+            onTap: (){
+              Navigator.pop(context);
+            },
+          ),
+
+          ListTile(
+            title: Text('Share', style: TextStyle(fontSize: 16, color: Colors.blueGrey),),
+            leading: Icon(Icons.share),
+            onTap: (){
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/share');
+            },
+          ),
+
+          ListTile(
+            title: Text('Logout', style: TextStyle(fontSize: 16, color: Colors.blueGrey),),
             leading: Icon(Icons.arrow_downward),
             onTap: (){
               Navigator.pop(context);

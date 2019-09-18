@@ -7,7 +7,7 @@ class appbar extends StatelessWidget with PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text('WealthSuite'),
+      title: Text('Share'),
       backgroundColor: Color(0xFF18D191),
       elevation: 2.0,
       leading: IconButton(

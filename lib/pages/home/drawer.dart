@@ -17,7 +17,15 @@ Widget drawer(BuildContext context, Function logout) {
                 image: DecorationImage(
                     fit: BoxFit.contain, image: AssetImage('assets/images/logo.png'))),
           ),
-
+          ListTile(
+            title: Text('About', style: TextStyle(fontSize: 16, color: Colors.blueGrey),),
+            selected: false,
+            leading: Icon(Icons.list),
+            onTap: (){
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/about');
+            },
+          ),
           ListTile(
             title: Text('Logout', style: TextStyle(fontSize: 16, color: Colors.blueGrey),),
             selected: true,
